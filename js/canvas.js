@@ -8,7 +8,12 @@ const playBtns = document.querySelectorAll(".play")
 const playerStats = document.querySelector(".player")
 const playerHPHTML = document.querySelector(".playerHP")
 const playerGHTML = document.querySelector(".playerGold")
+const waveHTML = document.querySelector(".waveNumber")
 const gameover = document.querySelector("#GameOver")
+const menu = document.querySelector(".menu")    
+const pauseButton = document.querySelector(".pause")
+const pauseText = document.querySelector("#GamePaused")
+const returnButton = document.querySelector(".return")
 canvas.width = 1280
 canvas.height = 768
 const mouse = {
@@ -31,12 +36,18 @@ const player = {
 }
 let currentTower
 let difficulty
+let isPaused
+let animationID
+let isGameover
+
 
 // Functions 
 const createEnemies = () => {
     const pathings = stagePathings[currentStage]
     let enemyCount = 10 + Math.floor(difficulty / 2)
     let enemySpeed = 1 + Math.round(difficulty / 4) * .25
+    playSound("wave")
+    waveHTML.innerHTML = difficulty
 
     for(let i = 0; i < enemyCount; i++){
         const startingOffset = 30 * i
@@ -90,6 +101,78 @@ const createPlacementTiles = () => {
     })
 }
 
+const playSound = (soundCode = "string") => {
+    const sound = new Audio()
+    switch(soundCode) {
+        case "death":
+            sound.src = `../sounds/death.wav`;
+            sound.volume = .3
+            break
+        case "wave":
+            sound.src = `../sounds/wave.wav`;
+            sound.volume = .2
+            break
+        case "bullet":
+            sound.src = `../sounds/bullet.ogg`;
+            sound.volume = .1
+            break
+        case "missile":
+            sound.src = `../sounds/missile.ogg`;
+            sound.volume = .2
+            break
+        case "moab":
+            sound.src = `../sounds/moab.ogg`;
+            sound.volume = .3
+            break
+        case "tank":
+            sound.src = `../sounds/bullet.ogg`;
+            sound.volume = .3
+            break
+    }
+    sound.play()
+}
+
+const createSound = (soundCode = "string") => {
+    const sound = new Audio()
+    switch(soundCode){
+        case "fire":
+            sound.src = `../sounds/fire.ogg`;
+            sound.volume = .1
+            break
+        case "laser":
+            sound.src = `../sounds/laser.ogg`;
+            sound.volume = .1
+            break
+    }
+
+    return sound
+}
+
+const pauseGame = () => {
+    cancelAnimationFrame(animationID)
+    buildings.forEach(tower => {
+        if(tower.sound && !tower.sound.paused) {
+            tower.sound.pause()
+        }
+    })
+    isPaused = true
+    pauseButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.1.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M361 215C375.3 223.8 384 239.3 384 256C384 272.7 375.3 288.2 361 296.1L73.03 472.1C58.21 482 39.66 482.4 24.52 473.9C9.377 465.4 0 449.4 0 432V80C0 62.64 9.377 46.63 24.52 38.13C39.66 29.64 58.21 29.99 73.03 39.04L361 215z"/></svg>
+    `
+    pauseText.style.display = "inline-block"
+}
+
+const unpauseGame = () => {
+    if(!isGameover) {
+        animate()
+        isPaused = false
+        pauseButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M272 63.1l-32 0c-26.51 0-48 21.49-48 47.1v288c0 26.51 21.49 48 48 48L272 448c26.51 0 48-21.49 48-48v-288C320 85.49 298.5 63.1 272 63.1zM80 63.1l-32 0c-26.51 0-48 21.49-48 48v288C0 426.5 21.49 448 48 448l32 0c26.51 0 48-21.49 48-48v-288C128 85.49 106.5 63.1 80 63.1z"/></svg>
+        `
+        pauseText.style.display = "none"
+    }
+}
+
 // Initialization
 const init = () => {
     background.src = backgroundStages[currentStage]
@@ -100,11 +183,13 @@ const init = () => {
     activeTile = undefined
     fourTiles = undefined
     player.hp = 100
-    player.gold = 250
+    player.gold = 250 * (currentStage + 1)
     playerHPHTML.innerHTML = player.hp
     playerGHTML.innerHTML = player.gold
     currentTower = undefined
     difficulty = 1
+    isPaused = false
+    isGameover = false
 
     createPlacementTiles()
     createEnemies()
@@ -112,7 +197,7 @@ const init = () => {
 }
 
 const animate = () => {
-    const animationID = requestAnimationFrame(animate)
+    animationID = requestAnimationFrame(animate)
     c.drawImage(background, 0, 0)
     
     // enemies and fireDetection
@@ -147,6 +232,7 @@ const animate = () => {
                 player.gold += enemy.gold
                 playerGHTML.innerHTML = player.gold
                 enemies.splice(i, 1)
+                playSound("death")
             }
         }
 
@@ -158,6 +244,7 @@ const animate = () => {
 
             if(player.hp <= 0){
                 gameover.style.display = "inline-block"
+                isGameover = true
                 cancelAnimationFrame(animationID)
             }
         }
@@ -205,6 +292,7 @@ const animate = () => {
                         player.gold += projectile.target.gold
                         playerGHTML.innerHTML = player.gold
                         enemies.splice(enemyIndex, 1)
+                        playSound("death")
                     }
                 }
             } else if(projectile.ttl) {
@@ -343,11 +431,40 @@ playBtns.forEach(button => {
     button.addEventListener("click", (e) => {
         currentStage = e.currentTarget.dataset.stage - 1
 
-        //  - difficulty
         stageSelect.style.display = "none"
         shop.style.display = "flex"
         playerStats.style.display = "flex"
+        menu.style.display = "flex"
         init()
     })
 })
 
+pauseButton.addEventListener("click", () => {
+    if(isPaused) unpauseGame()
+    else pauseGame() 
+})
+
+addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "hidden") {
+        if(animationID !== 0 && animationID !== undefined){
+            pauseGame()
+        }
+    }
+})
+
+returnButton.addEventListener("click", () => {
+    cancelAnimationFrame(animationID)
+    buildings.forEach(tower => {
+        if(tower.sound && !tower.sound.paused) {
+            tower.sound.pause()
+        }
+    })
+    // resets animationID frames to 0, to prevent pauses from switching tabs in menu
+    animationID = 0
+
+    stageSelect.style.display = "flex"
+    pauseText.style.display = "none"
+    shop.style.display = "none"
+    playerStats.style.display = "none"
+    menu.style.display = "none"
+})

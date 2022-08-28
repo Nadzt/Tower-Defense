@@ -71,6 +71,7 @@ class TowerSimple extends Tower {
             projectile: this.projectile,
             target: this.target,
         }))
+        playSound(this.projectile.sound)
     }
 
     update(){        
@@ -118,6 +119,8 @@ class TowerFlamethrower extends Tower {
         this.angleOffset = 0
         this.maxAngle = maxAngle
         this.cannonSpeed = cannonSpeed
+        this.sound = createSound("fire")
+        this.sound.loop = true
     }
 
     draw() {
@@ -161,8 +164,15 @@ class TowerFlamethrower extends Tower {
                 this.shoot()
             }
 
+            if(this.sound.paused){
+                this.sound.play()
+            }
             this.frames++
-        }else if (this.frames % this.fireRate !== 0) this.frames++
+        }else {
+        this.sound.pause()
+        this.sound.currentTime = 0
+        if (this.frames % this.fireRate !== 0) this.frames++
+        }
 
         this.draw()
     }
@@ -203,6 +213,8 @@ class TowerLaser extends Tower {
         this.fireRate = fireRate
         this.projectile = projectile
         this.previousTarget
+        this.sound = createSound("laser")
+        this.sound.loop = true
     }
 
     draw() {
@@ -219,7 +231,7 @@ class TowerLaser extends Tower {
         c.fillStyle = 'yellow';
         c.fill(laserPath);
 
-        if(this.target !== this.previousTarget)this.projectile.damage = 0
+        if(this.target !== this.previousTarget) this.projectile.damage = 0
         if(this.frames % this.fireRate === 0) {
             this.projectile.damage += this.projectile.incrementalDamage
             this.target.HP -= this.projectile.damage
@@ -228,8 +240,10 @@ class TowerLaser extends Tower {
                     return enemy === this.target
                 })
                 if(enemyIndex > -1) {
-                    player.gold += 50 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    player.gold += this.target.gold
+                    playerGHTML.innerHTML = player.gold
                     enemies.splice(enemyIndex, 1)
+                    playSound("death")
                 }
             }
         }
@@ -238,7 +252,13 @@ class TowerLaser extends Tower {
     }
 
     update(){        
-        if(this.target) this.shoot()
+        if(this.target) {
+            this.shoot()
+            if(this.sound.paused) this.sound.play()
+        } else {
+            this.sound.pause()
+            this.sound.currentTime = 0
+        }
         if(this.target) this.frames++
 
         this.draw()
@@ -258,7 +278,8 @@ const towers = {
             speed: 7,
             radius: 4,
             damage: 15,
-            size: 32
+            size: 32,
+            sound: "bullet"
         }
     },
     missile: { // 50 DPS
@@ -273,7 +294,8 @@ const towers = {
             speed: 4,
             radius: 7,
             damage: 75,
-            size: 32
+            size: 32,
+            sound: "missile"
         }
     },
     missile2: { // 96 DPS
@@ -285,25 +307,27 @@ const towers = {
         projectile: {
             quantityPerShot: 1,
             img: "img/projectiles/missile-sm.png",
-            speed: 2,
+            speed: 3,
             radius: 7,
             damage: 800,
-            size: 32
+            size: 32,
+            sound: "missile"
         }
     },
     moab: { // 200 DPS
         imageSrc: "img/towers/moab.png",
         size: 64,
-        range: 375,
+        range: 600,
         fireRate: 600,
         value: 1000,
         projectile: {
             quantityPerShot: 1,
             img: "img/projectiles/missile.png",
-            speed: 1.5,
+            speed: 2,
             radius: 15,
             damage: 2000,
-            size: 64
+            size: 64,
+            sound: "moab"
         }
     },
     flamethrower: { // 9% - 3% DPS AOE
@@ -314,7 +338,7 @@ const towers = {
         fireRate: 3,
         maxAngle: 0.5,
         cannonSpeed: 0.03,
-        value: 500,
+        value: 50,
         projectile: {
             img: "img/projectiles/flame-1.png",
             speed: 2,
@@ -348,7 +372,7 @@ const towers = {
         size: 32,
         range: 250,
         fireRate: 4,
-        value: 1000,
+        value: 1,
         projectile: {
             damage: 0,
             incrementalDamage: 0.3,
@@ -366,7 +390,8 @@ const towers = {
             speed: 7,
             radius: 7,
             damage: 390,
-            size: 64
+            size: 64,
+            sound: "tank"
         }
     },
     tank2: { // 900
@@ -381,7 +406,8 @@ const towers = {
             speed: 5,
             radius: 10,
             damage: 75,
-            size: 64
+            size: 64,
+            sound: "tank"
         }
     }
 }
