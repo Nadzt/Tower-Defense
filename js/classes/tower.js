@@ -51,6 +51,7 @@ class TowerSimple extends Tower {
         this.range = range
         this.fireRate = fireRate
         this.projectile = projectile
+        this.sound = createSound(this.projectile.sound)
     }
 
     draw() {
@@ -71,7 +72,7 @@ class TowerSimple extends Tower {
             projectile: this.projectile,
             target: this.target,
         }))
-        playSound(this.projectile.sound)
+        if(!isMuted) this.sound.play()
     }
 
     update(){        
@@ -164,7 +165,7 @@ class TowerFlamethrower extends Tower {
                 this.shoot()
             }
 
-            if(this.sound.paused){
+            if(this.sound.paused && !isMuted){
                 this.sound.play()
             }
             this.frames++
@@ -174,6 +175,7 @@ class TowerFlamethrower extends Tower {
         if (this.frames % this.fireRate !== 0) this.frames++
         }
 
+        if(isMuted && !this.sound.paused) this.sound.pause()
         this.draw()
     }
 }
@@ -254,13 +256,14 @@ class TowerLaser extends Tower {
     update(){        
         if(this.target) {
             this.shoot()
-            if(this.sound.paused) this.sound.play()
+            if(this.sound.paused && !isMuted) this.sound.play()
         } else {
             this.sound.pause()
             this.sound.currentTime = 0
         }
         if(this.target) this.frames++
-
+        
+        if(isMuted && !this.sound.paused) this.sound.pause()
         this.draw()
     }
 }
@@ -338,7 +341,7 @@ const towers = {
         fireRate: 3,
         maxAngle: 0.5,
         cannonSpeed: 0.03,
-        value: 500,
+        value: 50,
         projectile: {
             img: "img/projectiles/flame-1.png",
             speed: 2,
