@@ -341,7 +341,7 @@ const towers = {
         fireRate: 3,
         maxAngle: 0.5,
         cannonSpeed: 0.03,
-        value: 50,
+        value: 500,
         projectile: {
             img: "img/projectiles/flame-1.png",
             speed: 2,
