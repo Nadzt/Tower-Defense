@@ -245,7 +245,7 @@ class TowerLaser extends Tower {
                     player.gold += this.target.gold
                     playerGHTML.innerHTML = player.gold
                     enemies.splice(enemyIndex, 1)
-                    playSound("death")
+                    if(!isMuted) playSound("death")
                 }
             }
         }
