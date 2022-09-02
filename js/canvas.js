@@ -82,10 +82,11 @@ const createEnemies = () => {
 
 const createPlacementTiles = () => {
     let rawData = rawPlacement[currentStage]
+    placementArray.splice(0, placementArray.length)
+
     for(let i = 0; i < rawData.length; i += 40){
         placementArray.push(rawData.slice(i, i + 40))
     }
-
     placementArray.forEach((row, i) => {
         row.forEach((item, j) => {
             switch(item) {
