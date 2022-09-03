@@ -464,6 +464,8 @@ returnButton.addEventListener("click", () => {
     // resets animationID frames to 0, to prevent pauses from switching tabs in menu
     animationID = 0
 
+    isGameover = false
+    gameover.style.display = "none"
     stageSelect.style.display = "flex"
     pauseText.style.display = "none"
     shop.style.display = "none"
