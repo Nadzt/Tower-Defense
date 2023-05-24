@@ -1,3 +1,5 @@
-Simple Tower Defense Game made in HTML Canvas.
+## Tower Defense Game
+a tower defense game developed with vanilla javascript on html canvas
+you can see it [here](https://td.ejoaquin.com/)
 
-To run you must open Server, this can be done with the Visual Studio Code "Live Server" Extension or through npm package "live-server".
+![screenshot](https://github.com/Nadzt/Tower-Defense/blob/main/img/screenshot.png)
